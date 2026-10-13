@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="ShellSentry-AI 本地恶意脚本静态审计工作台">
+  <title>ShellSentry-AI</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles/app.css">
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <aside class="sidebar" id="sidebar" aria-label="任务导航">
+    <header class="brand-row"><img src="/static/icon.svg" alt="" class="brand-mark"><div class="brand-copy"><strong>ShellSentry-AI</strong></div><button class="icon-button sidebar-close" id="sidebarClose" type="button" title="关闭任务栏"><i data-lucide="x"></i></button></header>
+    <button class="new-task-button" id="newTaskButton" type="button"><i data-lucide="square-pen"></i><span>新建审计</span></button>
+    <section class="history-section"><div class="section-label-row"><span class="section-label">最近任务</span><div class="history-heading-actions"><button class="icon-button subtle" id="clearHistoryButton" type="button" title="清空全部历史" aria-label="清空全部历史"><i data-lucide="list-x"></i></button><button class="icon-button subtle" id="refreshHistoryButton" type="button" title="刷新"><i data-lucide="refresh-cw"></i></button></div></div><div class="history-list" id="historyList"><div class="history-skeleton"><span></span><span></span></div></div></section>
+    <footer class="sidebar-footer"><button class="sidebar-action" id="settingsButton" type="button"><i data-lucide="settings-2"></i><span>模型设置</span><span class="connection-dot" id="connectionDot"></span></button><div class="privacy-note"><i data-lucide="shield-check"></i><span>本地静态分析，不执行样本</span></div><button class="build-chip" id="frontendBuildChip" type="button" title="前端构建指纹：新增/改动静态文件后此值会变化，用于确认浏览器加载的是最新代码">build …</button></footer>
+  </aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <main class="workspace">
+    <header class="topbar"><div class="topbar-leading"><button class="icon-button mobile-menu" id="mobileMenuButton" type="button" title="打开任务栏"><i data-lucide="panel-left"></i></button><div class="document-title"><strong id="documentName">新建审计</strong><span id="documentMeta">选择文件或粘贴代码</span></div></div><div class="topbar-actions"><div class="model-status" id="modelStatus"><span class="connection-dot"></span><span id="modelStatusText">检测模型配置</span></div><button class="button secondary" id="exportButton" type="button" disabled><i data-lucide="download"></i><span>导出</span></button><button class="button primary" id="auditButton" type="button" disabled><i data-lucide="scan-search"></i><span>开始审计</span></button></div></header>
+
+    <div class="workspace-scroll" id="workbench">
+      <div class="report-column">
+        <section class="task-composer" id="taskComposer">
+          <div class="composer-main"><div class="composer-icon"><i data-lucide="file-up"></i></div><div class="composer-copy"><strong id="composerTitle">添加待审计脚本</strong><span id="composerHint">拖放文件到此处，或选择文件 / 粘贴代码</span></div></div>
+          <div class="composer-actions"><button class="button secondary" id="chooseFileButton" type="button"><i data-lucide="folder-open"></i><span>选择文件</span></button><button class="button secondary" id="pasteModeButton" type="button"><i data-lucide="clipboard-paste"></i><span>粘贴代码</span></button><button class="icon-button" id="clearSourceButton" type="button" title="清空"><i data-lucide="x"></i></button></div>
+          <input id="fileInput" type="file" hidden accept=".php,.phtml,.jsp,.jspx,.java,.asp,.aspx,.asmx,.ashx,.cs,.py,.pyw,.ps1,.psm1,.sh,.bash,.zsh,.js,.mjs,.cjs,.jsx,.ts,.tsx,.html,.htm,.xhtml,.svg,.pl,.pm,.cgi,.rb,.vbs,.vbe,.wsf,.bat,.cmd,.txt,.log,.conf,.ini,.cfg,.xml,.json,.yaml,.yml,.zip">
+          <button id="fileModeButton" type="button" hidden></button>
+          <div class="paste-panel" id="pastePanel" hidden><textarea id="sourceInput" spellcheck="false" placeholder="在此粘贴待审计代码"></textarea><div class="paste-footer"><span id="sourceStats">0 行 · 0 字符</span><span id="sourceNotice">本地静态分析</span></div></div>
+        </section>
+
+        <section class="result-empty" id="resultEmpty"><div class="empty-graphic"><i data-lucide="scan-line"></i></div><strong>等待审计任务</strong><p>完成分析后，可分别查看攻击意图、代码反混淆、深度分析和应急响应。</p></section>
+        <section class="result-running" id="resultRunning" hidden><header><div><span class="eyebrow">正在分析</span><strong id="runningTitle">建立静态证据</strong></div><span class="elapsed" id="elapsedTime">00:00</span></header><div class="progress-track"><span id="progressBar"></span></div><ol class="audit-steps" id="auditSteps"><li class="active" data-step="static"><i data-lucide="scan-search"></i><span>静态扫描</span></li><li data-step="semantic"><i data-lucide="brain-circuit"></i><span>语义分析</span></li><li data-step="review"><i data-lucide="shield-check"></i><span>反向复核</span></li><li data-step="complete"><i data-lucide="check"></i><span>生成结论</span></li></ol><div class="live-log" id="liveLog"></div></section>
+
+        <div class="result-content" id="resultContent" hidden>
+          <section class="verdict-header" id="verdictHeader"><div class="verdict-main"><span class="verdict-icon"><i data-lucide="circle-help"></i></span><div><span class="eyebrow" id="verdictType">最终判定</span><h1 id="verdictLabel">等待结论</h1><p id="verdictSummary">暂无结论</p></div></div><div class="confidence-block"><strong id="confidenceValue">--</strong><span>置信度</span></div></section>
+          <nav class="section-nav" role="tablist" aria-label="报告章节"><button class="active" type="button" role="tab" aria-selected="true" data-section-tab="intent">攻击意图</button><button type="button" role="tab" aria-selected="false" data-section-tab="restoration">代码反混淆</button><button type="button" role="tab" aria-selected="false" data-section-tab="analysis">深度分析</button><button type="button" role="tab" aria-selected="false" data-section-tab="response">应急响应</button></nav>
+
+          <div class="report-panels">
+            <section class="report-section active" id="intentSection" data-section-panel="intent"><header class="section-heading"><span class="stage-index">01</span><div><span class="section-kicker">Attack profile</span><h2>攻击意图研判</h2></div></header><div class="intent-verdict"><span>研判结论</span><strong id="intentLabel">等待分析</strong><p id="intentPurpose">暂无攻击意图信息。</p></div><div class="profile-grid"><div><span>技术家族</span><strong id="intentFamily">未知</strong></div><div><span>核心技术栈</span><strong id="intentStack">暂无</strong></div><div><span>关联 ATT&amp;CK</span><strong id="intentAttack">暂无</strong></div></div><div class="intent-chain"><h3>攻击路径模拟</h3><div class="behavior-chain" id="behaviorChain"></div></div></section>
+
+            <section class="report-section" id="restorationSection" data-section-panel="restoration"><header class="section-heading"><span class="stage-index">02</span><div><span class="section-kicker">Deobfuscation</span><h2>代码反混淆</h2></div><button class="button secondary compact-button" id="copyDecodedButton" type="button"><i data-lucide="copy"></i><span>复制反混淆代码</span></button></header><div class="deobfuscation-note"><i data-lucide="shield-check"></i><span>仅进行静态解码与语义还原，不执行样本。红色标记表示关键危险代码。</span></div><div class="code-view decoded-view"><div class="line-numbers" id="lineNumbers">1</div><pre class="decoded-code" id="decodedCode"><code>未发现可静态反混淆的代码。</code></pre></div></section>
+
+            <section class="report-section" id="analysisSection" data-section-panel="analysis"><header class="section-heading"><span class="stage-index">03</span><div><span class="section-kicker">Deep analysis</span><h2>深度分析</h2></div></header><div class="tab-bar" role="tablist"><button class="active" data-analysis-tab="threat" type="button" role="tab" aria-selected="true">威胁特征</button><button data-analysis-tab="behavior" type="button" role="tab" aria-selected="false">行为分析</button><button data-analysis-tab="c2" type="button" role="tab" aria-selected="false">威胁溯源</button></div><div class="analysis-panel active" data-analysis-panel="threat"><div class="threat-dimensions" id="threatDimensions"></div></div><div class="analysis-panel" data-analysis-panel="behavior"><div class="behavior-table-wrap" id="behaviorAnalysis"></div></div><div class="analysis-panel" data-analysis-panel="c2"><div class="trace-content" id="c2Content"></div></div></section>
+
+            <section class="report-section" id="responseSection" data-section-panel="response"><header class="section-heading"><span class="stage-index">04</span><div><span class="section-kicker">Emergency response</span><h2>应急响应与汇报</h2></div></header><div class="response-grid response-stack"><article><div class="response-title"><span class="response-index">01</span><i data-lucide="list-x"></i><h3>IOC 封锁清单</h3></div><div id="responseIoc"></div></article><article><div class="response-title"><span class="response-index">02</span><i data-lucide="network"></i><h3>网络阻断规则</h3></div><div id="responseNetwork"></div></article><article><div class="response-title"><span class="response-index">03</span><i data-lucide="monitor-cog"></i><h3>主机清扫指令</h3></div><div id="responseHost"></div></article><article><div class="response-title"><span class="response-index">04</span><i data-lucide="file-text"></i><h3>安服汇报口径</h3></div><div id="responseReport"></div></article></div><div id="responseContent" hidden></div></section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div><aside class="settings-drawer" id="settingsDrawer" aria-hidden="true"><header class="drawer-header"><div><span class="eyebrow">Settings</span><h2>模型设置</h2></div><button class="icon-button" id="closeSettingsButton" type="button"><i data-lucide="x"></i></button></header><div class="drawer-body"><section class="settings-section"><div class="settings-heading"><div><h3>可用配置</h3><p>代码仅发送到当前启用的模型接口。</p></div><button class="button secondary compact-button" id="addConfigButton" type="button"><i data-lucide="plus"></i><span>添加</span></button></div><div class="config-list" id="configList"></div><div class="local-model-tools"><div><strong>本地 Ollama</strong><span>发现本机模型并快速填入配置。</span></div><div class="local-model-row"><input id="ollamaUrl" type="url" value="http://127.0.0.1:11434"><button class="button secondary compact-button" id="detectOllamaButton" type="button"><i data-lucide="radar"></i><span>探测</span></button></div><div class="ollama-results" id="ollamaResults" hidden></div></div></section><form class="config-form" id="configForm" hidden><input type="hidden" id="configId"><label>配置名称<input id="configName" type="text" placeholder="例如：本地 Ollama"></label><label>接口地址<input id="configBaseUrl" type="url" placeholder="http://127.0.0.1:11434/v1" required></label><label>API Key<input id="configApiKey" type="password" autocomplete="new-password" placeholder="仅保存在本机" required></label><label>模型名称<input id="configModelName" type="text" placeholder="qwen2.5-coder:7b" required></label><div class="form-feedback" id="configFeedback" hidden></div><div class="form-actions"><button class="button secondary" id="testConfigButton" type="button"><i data-lucide="plug-zap"></i><span>测试连接</span></button><button class="button primary" type="submit"><i data-lucide="save"></i><span>保存并启用</span></button></div></form></div></aside>
+<div class="toast-region" id="toastRegion" aria-live="polite"></div>
+<script src="/static/vendor/lucide.min.js"></script><script type="module" src="/static/scripts/app.js"></script>
+</body></html>

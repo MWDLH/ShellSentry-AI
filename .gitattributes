@@ -1,0 +1,19 @@
+# 统一换行符（避免"在我机器上好好的"）
+#
+# 背景：仓库里同时有 Windows 启动脚本（.cmd）与 POSIX 启动脚本（.sh）。
+# 若不作约束，行尾会随各人的 git core.autocrlf 设置漂移：
+#   · start-shellsentry.sh 一旦被转成 CRLF，Linux/macOS 上会报 bad interpreter，直接跑不起来；
+#   · .cmd / .ps1 用 LF 时，cmd.exe 解析 goto 标签等场景历史上出过问题，保持 CRLF 最稳。
+# 因此显式按扩展名固定行尾，而不是依赖运行环境。
+#
+# 所有文本文件先交给 git 自动识别（二进制保持不变），下面再对易踩坑的扩展名做覆盖。
+* text=auto
+
+# POSIX 执行脚本：必须是 LF
+*.sh   text eol=lf
+*.bash text eol=lf
+
+# Windows 脚本：保持 CRLF
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf

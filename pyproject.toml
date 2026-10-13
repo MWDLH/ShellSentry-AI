@@ -1,0 +1,51 @@
+[project]
+name = "shellsentry-ai"
+version = "1.0"
+description = "Local-first malicious code and WebShell auditing toolkit"
+readme = "README.md"
+# SPDX 表达式（PEP 639）。license-files 显式声明许可证文件，
+# 否则 setuptools 77+ 会因「裸字符串 license 缺 license-files」而报错。
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "ShellSentry-AI contributors" }]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "openai>=1.0.0",
+    "python-multipart>=0.0.6",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: FastAPI",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Security",
+]
+
+[project.scripts]
+shellsentry = "shellsentry.cli:main"
+
+[project.optional-dependencies]
+packaging = ["pyinstaller>=6.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"shellsentry.web" = [
+    "static/*.html",
+    "static/*.svg",
+    "static/styles/*.css",
+    "static/scripts/*.js",
+    "static/vendor/*.js",
+]

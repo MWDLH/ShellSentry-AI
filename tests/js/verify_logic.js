@@ -1,0 +1,21 @@
+const fs = require("fs");
+const path = require("path");
+const vm = require("vm");
+const root = process.argv[2] || path.resolve(__dirname, "../..");
+let source = fs.readFileSync(path.join(root, "src", "shellsentry", "web", "static", "scripts", "utils.js"), "utf8");
+source = source.replace(/export\s+/g, "");
+const context = { console, TextDecoder, Blob, URL };
+vm.createContext(context);
+vm.runInContext(source, context);
+let pass = 0, fail = 0;
+function check(name, condition) { if (condition) { pass++; console.log(`PASS ${name}`); } else { fail++; console.error(`FAIL ${name}`); } }
+const raw = "[IMAGE]XSS payload[/IMAGE][DE_OBFUSCATE][LINE_1][[HL]]alert(1)[[/HL]][/DE_OBFUSCATE][C2_INFO]None[/C2_INFO][METADATA_BEHAVIOR]sink[/METADATA_BEHAVIOR][PLAYBOOK]- isolate file[/PLAYBOOK]";
+const tags = context.parseTaggedReport(raw);
+check("extract image", tags.image === "XSS payload");
+check("clean decoded line tags", tags.decoded === "alert(1)");
+check("preserve raw highlight tags", tags.decodedRaw.includes("[[HL]]alert(1)[[/HL]]"));
+check("extract response", tags.response === "- isolate file");
+check("escape HTML", context.escapeHtml("<img>") === "&lt;img&gt;");
+check("language detection", context.languageFromFilename("sample.tsx") === "TSX");
+console.log(`PASS=${pass} FAIL=${fail}`);
+process.exitCode = fail ? 1 : 0;

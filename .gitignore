@@ -1,0 +1,41 @@
+# Local Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local runtime data and credentials
+api_config.json
+config.json
+.env
+.env.*
+!.env.example
+history/
+*.log
+.agent_session.json
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+*.spec
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local scratch / tooling temp dirs
+.workbuddy/
+
+# Generated evaluation samples (rebuild via tools/gen_*_samples.py)
+zz_samples/deob/
+zz_samples/quick/

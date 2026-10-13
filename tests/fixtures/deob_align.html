@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="/static/styles/app.css">
+</head>
+<body style="margin:0;padding:20px;background:#0f1115">
+<!-- 复现截图里的结构与关键 CSS -->
+<div class="code-view decoded-view" style="height:560px">
+  <div class="line-numbers" id="lineNumbers"></div>
+  <pre class="decoded-code" id="decodedCode"><code></code></pre>
+</div>
+<script type="module">
+import { parseTaggedReport } from '/static/scripts/utils.js';
+
+// 构造与用户截图同型的数据：长行会超出容器宽度
+const lines = [];
+lines.push('<%@ page import="java.io.*,java.net.*,javax.crypto.*"%>');
+lines.push('<%!');
+for (let i = 3; i <= 54; i++) {
+  let text;
+  if (i === 39) text = '        byte[] decryptedPayload = aesCipher.doFinal(bos.toByteArray());  // 这一行很长很长很长很长很长';
+  else if (i === 42) text = '        Object instance = new MemshellLoader(this.getClass().getClassLoader())';
+  else if (i === 44) text = '            .newInstance()';
+  else if (i % 7 === 0) text = '';
+  else if (i % 5 === 0) text = '        // ' + 'x'.repeat(30);
+  else text = '        int v' + i + ' = ' + i + ';';
+  lines.push('[LINE_' + i + ']' + text);
+}
+const code = lines.join('\n');
+document.getElementById('decodedCode').innerHTML = '<code>' + code.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</code>';
+document.getElementById('lineNumbers').textContent =
+  Array.from({length: 54}, (_, i) => String(i + 1)).join('\n');
+
+window.__ready = true;
+</script>
+</body></html>
