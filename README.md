@@ -29,7 +29,7 @@
 
 ## 智能体的工作循环
 
-<p align="center"><img src="assets/workflow.png" alt="智能体的工作循环：取证(工具层) → 定性(大模型) → 复核(Agent) → 五段式报告" width="880"></p>
+<p align="center"><img src="assets/workflow.png" alt="智能体的工作循环：取证(工具层) → 定性(大模型) → 复核(Agent) → 五段式报告" width="820"></p>
 
 - **工具层**（不需 API Key）：规则扫描、行为链分析、程序化解码 —— 结果确定、可复现；也是 `shellsentry scan` 单独提供的纯静态能力（**输出 JSON**）。
 - **推理 + 复核层**（需 API Key）：大模型在证据上解读定性，Agent 再对初稿证伪、排查误报，最后与确定性结论融合。
