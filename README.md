@@ -85,6 +85,8 @@ shellsentry serve                # 启动 Web 界面（完整智能体审计，�
 shellsentry scan suspicious.php  # 静态扫描单个文件，输出 JSON
 ```
 
+若 `pip install -e .` 报 `File "setup.py" or "setup.cfg" not found`，是 pip 版本过旧——早于 21.3 的 pip 不支持从 `pyproject.toml` 做 editable 安装。先执行 `python -m pip install -U pip` 再装即可（启动脚本已自动处理这一步）。
+
 ## 免责声明
 
 本工具仅用于**授权范围内**的安全审计与防御。误报与漏报不可避免，重要结论请人工复核。

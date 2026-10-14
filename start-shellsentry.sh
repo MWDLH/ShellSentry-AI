@@ -2,7 +2,7 @@
 # ShellSentry-AI — Linux / macOS launcher
 #
 # 与 start-shellsentry.cmd 保持同一套流程：
-#   1. 首次运行时创建项目内的独立 .venv
+#   1. 首次运行时创建项目内的独立 .venv（须为 Python 3.10+）
 #   2. 依赖缺失时自动安装
 #   3. 启动本地 Web 界面（端口占用时由应用自动避让）
 #
@@ -37,7 +37,24 @@ find_python() {
     return 1
 }
 
-if [ ! -x "$VENV_DIR/bin/python" ]; then
+# ── 环境自检：不存在，或低于 3.10，则（重）建 ────────────────────
+VENV_PYTHON=""
+if [ -x "$VENV_DIR/bin/python" ]; then
+    VENV_PYTHON="$VENV_DIR/bin/python"
+elif [ -x "$VENV_DIR/Scripts/python.exe" ]; then
+    VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
+fi
+
+if [ -n "$VENV_PYTHON" ]; then
+    # 旧环境可能是用 3.9 建的，项目要求 3.10+，留着会一路报错，直接重建。
+    "$VENV_PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null || {
+        echo "[ShellSentry] 现有环境使用 Python 3.9 或更低版本，正在重建..."
+        rm -rf "$VENV_DIR"
+        VENV_PYTHON=""
+    }
+fi
+
+if [ -z "$VENV_PYTHON" ]; then
     echo "[ShellSentry] 首次启动：正在创建独立的 Python 环境..."
     if ! PYTHON_BIN="$(find_python)"; then
         # 用 echo 而非 heredoc（cat），少依赖一个外部命令
@@ -62,13 +79,17 @@ if [ ! -x "$VENV_DIR/bin/python" ]; then
         echo "[ShellSentry] 虚拟环境已创建，但找不到解释器（预期 $VENV_DIR/bin/python）。" >&2
         exit 1
     fi
-else
-    VENV_PYTHON="$VENV_DIR/bin/python"
 fi
 
 # ── 依赖自检与安装 ───────────────────────────────────────────────
 if ! "$VENV_PYTHON" -c 'import shellsentry, fastapi, uvicorn, openai, multipart' >/dev/null 2>&1; then
     echo "[ShellSentry] 正在安装本地运行依赖..."
+    # 先升级 pip：venv 自带的 pip 可能早于 21.3，而 editable 安装（PEP 660）
+    # 是 21.3 才支持的，否则会报 setup.py not found 而装不上。
+    "$VENV_PYTHON" -m pip install --disable-pip-version-check --upgrade pip setuptools wheel || {
+        echo "[ShellSentry] pip 升级失败，请检查网络连接。" >&2
+        exit 1
+    }
     "$VENV_PYTHON" -m pip install --disable-pip-version-check -e . || {
         echo "[ShellSentry] 依赖安装失败，请检查网络连接。" >&2
         exit 1

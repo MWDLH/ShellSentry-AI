@@ -1,6 +1,6 @@
 [project]
 name = "shellsentry-ai"
-version = "1.0"
+version = "1.0.1"
 description = "Local-first malicious code and WebShell auditing toolkit"
 readme = "README.md"
 # SPDX 表达式（PEP 639）。license-files 显式声明许可证文件，
